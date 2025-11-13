@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/yourusername/ollama-chatbot.git'
+                git branch: 'main', url: 'https://github.com/Om-anand-0/ollama-rag-chatbot.git'
             }
         }
 
