@@ -17,7 +17,6 @@ services:
 
   qdrant:
     image: qdrant/qdrant:latest
-    container_name: qdrant
     # 🚫 no exposed ports (internal-only)
     volumes:
       - qdrant_data:/qdrant/storage
