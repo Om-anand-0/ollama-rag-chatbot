@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>GenZGPT</title>
+<style>
+    :root {
+        --bg: #f6f7f9;
+        --panel: #ffffff;
+        --border: #dadada;
+        --text: #222;
+        --text-light: #666;
+        --user-bubble: #dbeafe;
+        --ai-bubble: #e5e7eb;
+    }
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 750px;
+        margin-top: 40px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        box-shadow: 0px 3px 12px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    header {
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+        text-align: center;
+        background: white;
+    }
+
+    #chat-box {
+        height: 480px;
+        padding: 18px;
+        overflow-y: auto;
+    }
+
+    .msg {
+        padding: 10px 14px;
+        margin: 8px 0;
+        max-width: 75%;
+        border-radius: 10px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+    }
+    .user {
+        margin-left: auto;
+        background: var(--user-bubble);
+    }
+    .assistant {
+        margin-right: auto;
+        background: var(--ai-bubble);
+    }
+
+    footer {
+        border-top: 1px solid var(--border);
+        padding: 12px;
+        background: white;
+        display: flex;
+        gap: 10px;
+    }
+    input[type="text"] {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        outline: none;
+    }
+    button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    button:hover { background: #1e4fc8; }
+
+    .upload-box {
+        padding: 12px;
+        border-top: 1px solid var(--border);
+        background: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    #upload-status { color: green; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header>GenZGPT</header>
+
+    <div id="chat-box"></div>
+
+    <div class="upload-box">
+        <input type="file" id="file-input" />
+        <button onclick="uploadFile()">Upload</button>
+        <span id="upload-status"></span>
+    </div>
+
+    <footer>
+        <input id="message" type="text" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+        <button style="background:#ef4444" onclick="resetChat()">Reset</button>
+    </footer>
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+
+function addMessage(role, text) {
+    const box = document.getElementById("chat-box");
+    const div = document.createElement("div");
+    div.className = `msg ${role}`;
+    div.textContent = text;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+
+async function sendMessage() {
+    const input = document.getElementById("message");
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = "";
+
+    addMessage("user", text);
+
+    const res = await fetch(`${API}/chat`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ message: text })
+    });
+
+    const data = await res.json();
+    addMessage("assistant", data.reply);
+}
+
+async function resetChat() {
+    await fetch(`${API}/reset`, { method:"POST" });
+    document.getElementById("chat-box").innerHTML = "";
+    addMessage("assistant", "✅ Memory cleared!");
+}
+
+async function uploadFile() {
+    const file = document.getElementById("file-input").files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    await fetch(`${API}/upload`, { method:"POST", body: formData });
+    document.getElementById("upload-status").innerText = "Uploaded ✅";
+}
+
+// Enter key sends message
+document.getElementById("message").addEventListener("keydown", e => {
+    if (e.key === "Enter") sendMessage();
+});
+</script>
+
+</body>
+</html>
+        

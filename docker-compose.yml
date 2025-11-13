@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  chatbot:
+    build: .
+    container_name: fastapi_chatbot
+    ports:
+      - "8000:8000"
+    environment:
+      # 👇 Connect to existing Ollama running on Windows host
+      - OLLAMA_HOST=http://host.docker.internal:11434
+      # 👇 Internal Docker network link to Qdrant
+      - QDRANT_URL=http://qdrant:6333
+    depends_on:
+      - qdrant
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    # 🚫 no exposed ports (internal-only)
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
+volumes:
+  qdrant_data:
